@@ -2,7 +2,7 @@ from socket import*
 
 #test comment 2
 
-clientName = "client1"
+clientName = "clientB"
 serverName = "127.0.0.1"
 serverPort = 12000
 clientSocket = socket(AF_INET, SOCK_DGRAM)

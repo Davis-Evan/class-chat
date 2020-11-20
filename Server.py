@@ -31,15 +31,14 @@ while serverRunning:
 
     ###############
 
-    #can use index here
+    #can use index() here
     if (len(addresses) >= 2):
         if (incomingAddress == addresses[0]):
             outgoingAddress = addresses[1]
         else:
             outgoingAddress = addresses[0]
-
-        incomingMessage = message.decode()
-        outgoingMessage = incomingMessage
+    else:
+        outgoingAddress = incomingAddress
         serverSocket.sendto(outgoingMessage.encode(), outgoingAddress)
 
 
