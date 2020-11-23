@@ -1,54 +1,56 @@
-import socket
 import threading
+import socket
 
 HOST = "127.0.0.1"
 PORT = 12000
-
-# with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#    s.bind((HOST, PORT))
-#    s.listen()
-
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen()
 
-user_ids = {}
 clients = []
+usernames = {}
 
 
-def main():
-    print("Main")
-    receive()
-
-
-def broadcast(mess):
+def fwd_all(mess):
     mess = mess.encode()
     for cs in clients:
         cs.send(mess)
 
 
-def in_sys_check(addr):
-    mess = "User not registered"
-    addr.send(mess.encode())
+def private_mess(raddr, mess, ssock):
+    pMess = "Private Message: "
+    mess = (pMess + mess).encode()
+
+    if raddr not in usernames:
+        mess = "User not in system"
+        mess = mess.encode()
+        ssock.send(mess)
+    else:
+        for c in clients:
+            peer = c.getpeername()
+            if(peer[1] == usernames[raddr][1]):
+                c.send(mess)
 
 
-def handle(csock, addr, user_id):
-    mess = csock.recv(2048)
-    broadcast(mess)
+def handle(csock, caddr, username):
+    while True:
+        mess = (csock.recv(2048)).decode()
+        fwd_all(mess)
 
 
 def receive():
+    prompt = "Username"
+    prompt = prompt.encode()
     while True:
-        csock, addr = s.accept()
-        csock.send("RequestUserID".encode())
-        user_id = csock.recv(2048).decode()
-        user_ids[user_id] = addr
+        csock, caddr = s.accept()
+        csock.send(prompt)
+        username = csock.recv(2048).decode()
+        usernames[username] = caddr
         clients.append(csock)
-        #broadcast((user_id + " just joined.").encode())
-        broadcast("Someone's here.")
-        t = threading.Thread(target=handle, args=(csock, addr, user_id))
-        t.start()
+        mess = username + " has joined the group."
+        fwd_all(mess)
+        thread = threading.Thread(target = handle, args = (csock, caddr, username))
+        thread.start()
 
-
-main()
-
+print("Server running")
+receive()

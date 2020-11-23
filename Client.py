@@ -25,8 +25,8 @@ def rec():
 
 def write():
     while True:
-        message = f'{user} : {input("")}'
-        s.send(message.encode())
+        mess = f'{user} : {input("")}'
+        s.send(mess.encode())
 
 
 rec = threading.Thread(target=rec)
