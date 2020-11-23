@@ -2,13 +2,18 @@ import threading
 import socket
 
 HOST = "127.0.0.1"
-PORT = 12000
+PORT = 8000
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen()
 
 clients = []
 usernames = {}
+
+
+def main():
+    print("Server running.")
+    receive()
 
 
 def fwd_all(mess):
@@ -28,14 +33,35 @@ def private_mess(raddr, mess, ssock):
     else:
         for c in clients:
             peer = c.getpeername()
-            if(peer[1] == usernames[raddr][1]):
+            if (peer[1] == usernames[raddr][1]):
                 c.send(mess)
 
 
-def handle(csock, caddr, username):
+def handle(csock, username):
     while True:
-        mess = (csock.recv(2048)).decode()
-        fwd_all(mess)
+        mess = csock.recv(2048).decode()
+        temp = mess
+
+        if '-' in temp:
+            sendTo = ""
+            mess = ""
+            privMess = False
+            for i in range(len(temp)):
+                if temp[i] == '-':
+                    privMess = True
+                    continue
+                elif privMess == True:
+                    if temp[i] == ' ':
+                        privMess = False
+                        continue
+                    else:
+                        sendTo += temp[i]
+                else:
+                    mess += temp[i]
+            private_mess(sendTo, mess, csock)
+
+        else:
+            fwd_all(mess)
 
 
 def receive():
@@ -49,8 +75,8 @@ def receive():
         clients.append(csock)
         mess = username + " has joined the group."
         fwd_all(mess)
-        thread = threading.Thread(target = handle, args = (csock, caddr, username))
+        thread = threading.Thread(target=handle, args=(csock, username))
         thread.start()
 
-print("Server running")
-receive()
+
+main()

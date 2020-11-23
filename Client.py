@@ -2,9 +2,8 @@ import socket
 import threading
 
 user = input("Username: ")
-
 HOST = "127.0.0.1"
-PORT = 12000
+PORT = 8000
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
@@ -29,8 +28,11 @@ def write():
         s.send(mess.encode())
 
 
-rec = threading.Thread(target=rec)
-rec.start()
+def main():
+    rec_run = threading.Thread(target=rec)
+    rec_run.start()
+    write_run = threading.Thread(target=write)
+    write_run.start()
 
-write = threading.Thread(target=write)
-write.start()
+
+main()
